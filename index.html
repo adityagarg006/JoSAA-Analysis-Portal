@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JoSAA Data Analysis Portal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-wrapper">
+      <div class="logo">JoSAA<span>Portal</span></div>
+
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#" class="tab-link active" data-tab="home">Home</a></li>
+          <li><a href="#" class="tab-link" data-tab="about">About</a></li>
+          <li><a href="#" class="tab-link" data-tab="explore">Explore</a></li>
+        </ul>
+      </nav>
+
+      <div class="menu-btn" id="menuBtn">&#9776;</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="tab-section active" id="home-tab">
+      <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+          <div class="hero-left">
+            <p class="hero-label">IIT Admissions | 2016–2022</p>
+            <h1>JoSAA Seat Allotment Analysis Portal</h1>
+            <p class="hero-text">
+              A modern portal to explore JoSAA seat allocation trends across IITs,
+              compare branches, inspect year-wise changes, and uncover meaningful
+              insights through visual data analysis.
+            </p>
+
+            <div class="hero-buttons">
+              <a href="#" class="btn btn-dark hero-tab-btn" data-tab="explore">Explore Portal</a>
+              <a href="#" class="btn btn-light hero-tab-btn" data-tab="about">Learn More</a>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="info-card">
+              <p class="small-heading">DATA COVERAGE</p>
+              <h3>IIT-focused JoSAA Insights</h3>
+
+              <div class="info-row">
+                <span>Years Included</span>
+                <strong>2016–2022</strong>
+              </div>
+
+              <div class="info-row">
+                <span>Institutes</span>
+                <strong>All IITs</strong>
+              </div>
+
+              <div class="info-row">
+                <span>Portal Focus</span>
+                <strong>Seat Allotment Trends</strong>
+              </div>
+
+              <div class="mini-stats">
+                <div class="mini-box">
+                  <h4>7</h4>
+                  <p>Years</p>
+                </div>
+                <div class="mini-box">
+                  <h4>20+</h4>
+                  <p>IITs</p>
+                </div>
+                <div class="mini-box">
+                  <h4>100+</h4>
+                  <p>Programs</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="highlights section">
+        <div class="container">
+          <div class="highlight-grid">
+            <div class="highlight-card">
+              <h3>Compare IITs</h3>
+              <p>See how seat trends and branch demand vary across different IITs.</p>
+            </div>
+
+            <div class="highlight-card">
+              <h3>Track Branch Popularity</h3>
+              <p>Study which branches have gained or lost preference over the years.</p>
+            </div>
+
+            <div class="highlight-card">
+              <h3>Visual Analytics</h3>
+              <p>Use charts and tables to understand cutoff and allotment patterns.</p>
+            </div>
+
+            <div class="highlight-card">
+              <h3>Insight Engine</h3>
+              <p>Get direct answers to key IIT admission questions from the portal.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="tab-section" id="about-tab">
+      <section class="about section section-top-space">
+        <div class="container section-grid">
+          <div class="section-left">
+            <p class="section-tag">About the Portal</p>
+            <h2>A clean platform for meaningful admission insights</h2>
+          </div>
+
+          <div class="section-right">
+            <p>
+              This portal is designed to analyze JoSAA seat allotment statistics for
+              IITs from 2016 to 2022. It transforms raw admission data into a
+              structured and visually engaging experience.
+            </p>
+            <p>
+              The goal is to help users understand branch popularity, institute-wise
+              trends, seat movement, competitiveness, diversity of offerings, and
+              changing admission patterns over time through charts, tables, and
+              interactive comparisons.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="highlight-grid">
+            <div class="highlight-card">
+              <h3>Year-wise Analysis</h3>
+              <p>Compare patterns from 2016 to 2022 across IITs, branches, and ranks.</p>
+            </div>
+            <div class="highlight-card">
+              <h3>IIT-only Focus</h3>
+              <p>The portal remains focused only on IIT-related JoSAA data.</p>
+            </div>
+            <div class="highlight-card">
+              <h3>Comparative Insights</h3>
+              <p>Understand how the same branch performs across multiple IITs.</p>
+            </div>
+            <div class="highlight-card">
+              <h3>Clear Analytics</h3>
+              <p>Every major project question is mapped to a chart, card, leaderboard, or table.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="tab-section" id="explore-tab">
+      <section class="section section-top-space">
+        <div class="container">
+          <div class="section-center">
+            <p class="section-tag">Explore Data</p>
+            <h2>Statistical Analysis</h2>
+            <p class="explore-subtext">
+              Explore JoSAA IIT admission patterns through filters, rankings, trend
+              visuals, comparison views, and structured insight panels.
+            </p>
+          </div>
+
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by IIT or branch..." />
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="yearFilter">Year</label>
+              <select id="yearFilter">
+                <option value="all">All</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="iitFilter">IIT</label>
+              <select id="iitFilter">
+                <option value="all">All</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="branchFilter">Branch</label>
+              <select id="branchFilter">
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="stats-preview-grid" id="statsPreviewGrid"></div>
+
+          <div class="insight-grid" id="insightGrid"></div>
+
+          <div class="qa-section">
+            <div class="section-head-inline">
+              <p class="section-tag">Answers to</p>
+              <h3>Key Questions</h3>
+            </div>
+            <div class="answer-grid" id="answerGrid"></div>
+          </div>
+
+          <div class="chart-section">
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Seat Intake by IIT</h3>
+                <p>Which IIT has the highest visible total intake?</p>
+              </div>
+              <div class="bar-chart" id="iitChart"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Seat Intake by Branch</h3>
+                <p>Which branch leads the current view?</p>
+              </div>
+              <div class="bar-chart" id="branchChart"></div>
+            </div>
+          </div>
+
+          <div class="chart-section chart-section-bottom">
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Year-wise Seat Trend</h3>
+                <p>How total intake changes across years</p>
+              </div>
+              <div class="line-chart" id="yearTrendChart"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Branch Popularity Leaderboard</h3>
+                <p>Top branches by combined intake in current view</p>
+              </div>
+              <div class="leaderboard" id="branchLeaderboard"></div>
+            </div>
+          </div>
+
+          <div class="chart-section chart-section-bottom">
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Branch Diversity by IIT</h3>
+                <p>Which IIT offers the widest visible variety?</p>
+              </div>
+              <div class="bar-chart" id="diversityChart"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Branch Coverage Across IITs</h3>
+                <p>Which branches appear in the most IITs?</p>
+              </div>
+              <div class="bar-chart" id="coverageChart"></div>
+            </div>
+          </div>
+
+          <div class="chart-section chart-section-bottom">
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Competitiveness Overview</h3>
+                <p>Lowest visible closing ranks by IIT-branch combination</p>
+              </div>
+              <div class="leaderboard" id="competitiveLeaderboard"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-head">
+                <h3>Outlier Watch</h3>
+                <p>Interesting records that stand out in the current dataset</p>
+              </div>
+              <div class="leaderboard" id="outlierLeaderboard"></div>
+            </div>
+          </div>
+
+          <div class="table-tools">
+            <div class="section-head-inline">
+              <p class="section-tag">Record Explorer</p>
+              <h3>Sortable Data Table</h3>
+            </div>
+
+            <div class="sort-bar">
+              <div class="filter-group sort-group">
+                <label for="sortField">Sort By</label>
+                <select id="sortField">
+                  <option value="year">Year</option>
+                  <option value="iit">IIT</option>
+                  <option value="branch">Branch</option>
+                  <option value="seats">Seat Intake</option>
+                  <option value="openingRank">Opening Rank</option>
+                  <option value="closingRank">Closing Rank</option>
+                  <option value="rankGap">Rank Gap</option>
+                </select>
+              </div>
+
+              <div class="filter-group sort-group">
+                <label for="sortOrder">Order</label>
+                <select id="sortOrder">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>IIT</th>
+                  <th>Branch</th>
+                  <th>Seat Intake</th>
+                  <th>Opening Rank</th>
+                  <th>Closing Rank</th>
+                  <th>Rank Gap</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="details-modal">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <p class="section-tag">Record Details</p>
+      <h2 id="modalTitle">Entry Details</h2>
+      <div class="modal-grid" id="modalGrid"></div>
+    </div>
+  </div>
+
+
+
+  <script src="data.js"></script>
+  <script src="analytics.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
