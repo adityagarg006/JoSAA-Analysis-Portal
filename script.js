@@ -29,12 +29,6 @@ const modalClose = document.getElementById("modalClose");
 const modalTitle = document.getElementById("modalTitle");
 const modalGrid = document.getElementById("modalGrid");
 
-let baseData = [];
-
-if (window.analytics && window.josaaData) {
-  baseData = analytics.enrichData(window.josaaData);
-}
-
 if (menuBtn && navLinks) {
   menuBtn.addEventListener("click", () => {
     navLinks.classList.toggle("active");
@@ -140,31 +134,42 @@ function getFilteredData() {
 function renderStats(data) {
   if (!statsPreviewGrid) return;
 
+  if (!data.length) {
+    statsPreviewGrid.innerHTML = `
+      <div class="stats-preview-card"><h3>Total Records</h3><h4>-</h4><p>No data.</p></div>
+      <div class="stats-preview-card"><h3>IITs Covered</h3><h4>-</h4><p>No data.</p></div>
+      <div class="stats-preview-card"><h3>Avg Opening Rank</h3><h4>-</h4><p>No data.</p></div>
+      <div class="stats-preview-card"><h3>Avg Closing Rank</h3><h4>-</h4><p>No data.</p></div>
+    `;
+    return;
+  }
+
   const totalRecords = data.length;
-  const totalSeats = data.reduce((sum, item) => sum + item.seats, 0);
+  const iitCount = analytics.uniqueValues(data, "iit").length;
+  const branchCount = analytics.uniqueValues(data, "branch").length;
   const avgClosing = analytics.averageClosingRank(data) ?? "-";
   const avgOpening = analytics.averageOpeningRank(data) ?? "-";
 
   statsPreviewGrid.innerHTML = `
     <div class="stats-preview-card">
       <h3>Total Records</h3>
-      <h4>${totalRecords}</h4>
-      <p>Visible IIT-branch records after current filters.</p>
+      <h4>${totalRecords.toLocaleString()}</h4>
+      <p>Admission entries in the current view.</p>
     </div>
     <div class="stats-preview-card">
-      <h3>Total Seat Intake</h3>
-      <h4>${totalSeats}</h4>
-      <p>Combined seat count across the current view.</p>
+      <h3>IITs & Branches</h3>
+      <h4>${iitCount} IITs, ${branchCount} Branches</h4>
+      <p>Unique institutions and programs tracked.</p>
     </div>
     <div class="stats-preview-card">
-      <h3>Average Opening Rank</h3>
-      <h4>${avgOpening}</h4>
-      <p>Mean opening rank for the filtered dataset.</p>
+      <h3>Avg Opening Rank</h3>
+      <h4>${avgOpening.toLocaleString()}</h4>
+      <p>Average opening cutoff in this view.</p>
     </div>
     <div class="stats-preview-card">
-      <h3>Average Closing Rank</h3>
-      <h4>${avgClosing}</h4>
-      <p>Mean closing rank for the filtered dataset.</p>
+      <h3>Avg Closing Rank</h3>
+      <h4>${avgClosing.toLocaleString()}</h4>
+      <p>Average closing cutoff in this view.</p>
     </div>
   `;
 }
@@ -174,146 +179,121 @@ function renderInsights(data) {
 
   if (!data.length) {
     insightGrid.innerHTML = `
-      <div class="insight-card"><h3>Top IIT</h3><h4>-</h4><p>No data available.</p></div>
-      <div class="insight-card"><h3>Top Branch</h3><h4>-</h4><p>No data available.</p></div>
-      <div class="insight-card"><h3>Most Competitive</h3><h4>-</h4><p>No data available.</p></div>
-      <div class="insight-card"><h3>Largest Shift</h3><h4>-</h4><p>No data available.</p></div>
+      <div class="insight-card"><h3>Top Program</h3><h4>-</h4><p>No data.</p></div>
+      <div class="insight-card"><h3>Most Diverse IIT</h3><h4>-</h4><p>No data.</p></div>
+      <div class="insight-card"><h3>Easiest Entry</h3><h4>-</h4><p>No data.</p></div>
+      <div class="insight-card"><h3>Round Advantage</h3><h4>-</h4><p>No data.</p></div>
     `;
     return;
   }
 
-  const topIIT = analytics.topBySeats(data, "iit");
-  const topBranch = analytics.topBySeats(data, "branch");
-  const competitive = analytics.mostCompetitive(data, 1)[0];
-  const yearlyShift = analytics.largestYearlySeatShift(data);
+  const topProg = analytics.mostCompetitive(data, 1)[0];
+  const diverse = analytics.sortEntries(analytics.programsOfferedByIIT(data), 1)[0];
+  const easiest = analytics.leastCompetitive(data, 1)[0];
+  const roundAdv = analytics.roundWaitingAdvantage(data);
 
   insightGrid.innerHTML = `
     <div class="insight-card">
-      <h3>Top IIT by Seats</h3>
-      <h4>${topIIT ? topIIT[0] : "-"}</h4>
-      <p>${topIIT ? `${topIIT[1]} seats in the current view.` : "No data available."}</p>
+      <h3>Hardest to Get In</h3>
+      <h4>${topProg ? topProg.iit.replace("Indian Institute of Technology ", "IIT ") : "-"}</h4>
+      <p>${topProg ? `${topProg.branch} — closes at rank ${topProg.closingRank}` : "No data."}</p>
     </div>
     <div class="insight-card">
-      <h3>Top Branch by Seats</h3>
-      <h4>${topBranch ? topBranch[0] : "-"}</h4>
-      <p>${topBranch ? `${topBranch[1]} seats in the current view.` : "No data available."}</p>
+      <h3>Most Diverse IIT</h3>
+      <h4>${diverse ? diverse[0].replace("Indian Institute of Technology ", "IIT ") : "-"}</h4>
+      <p>${diverse ? `Offers ${diverse[1]} different programs` : "No data."}</p>
     </div>
     <div class="insight-card">
-      <h3>Most Competitive Program</h3>
-      <h4>${competitive ? competitive.iit : "-"}</h4>
-      <p>${competitive ? `${competitive.branch} closes at rank ${competitive.closingRank}.` : "No data available."}</p>
+      <h3>Easiest Entry Point</h3>
+      <h4>${easiest ? easiest.iit.replace("Indian Institute of Technology ", "IIT ") : "-"}</h4>
+      <p>${easiest ? `${easiest.branch} — rank ${easiest.closingRank} can get in` : "No data."}</p>
     </div>
     <div class="insight-card">
-      <h3>Largest Year Shift</h3>
-      <h4>${yearlyShift ? `${yearlyShift.from} → ${yearlyShift.to}` : "-"}</h4>
-      <p>${yearlyShift ? `${yearlyShift.delta > 0 ? "+" : ""}${yearlyShift.delta} seat change.` : "No data available."}</p>
+      <h3>Waiting for Later Rounds?</h3>
+      <h4>${roundAdv ? (roundAdv.improvement > 0 ? "Yes, it helps!" : "Not much difference") : "-"}</h4>
+      <p>${roundAdv ? `Cutoffs relax by ~${Math.abs(roundAdv.improvement)} ranks from Round ${roundAdv.firstRound} to ${roundAdv.lastRound}` : "No data."}</p>
     </div>
   `;
 }
 
 function renderAnswerGrid(data) {
   if (!answerGrid) return;
+  if (!data.length) { answerGrid.innerHTML = ""; return; }
 
-  if (!data.length) {
-    answerGrid.innerHTML = "";
-    return;
-  }
+  const roundAdv = analytics.roundWaitingAdvantage(data);
+  const rising = analytics.risingBranches(data);
+  const risingTop = rising.length ? rising[0] : null;
+  const fallingTop = rising.length ? rising[rising.length - 1] : null;
+  const oldNew = analytics.oldVsNewIITs(data);
+  const cseCore = analytics.cseVsOtherBranch(data);
+  const stability = analytics.cutoffStability(data);
+  const risingIITs = analytics.fastestRisingIITs(data);
+  const topRisingIIT = risingIITs.length ? risingIITs[0] : null;
+  const brackets = analytics.safeOptionsAtRankBrackets(data);
+  const top5 = analytics.mostCompetitive(data, 5);
+  const coverageTop = analytics.sortEntries(analytics.branchCoverageAcrossIITs(data), 1)[0];
 
-  const topIIT = analytics.topBySeats(data, "iit");
-  const topBranch = analytics.topBySeats(data, "branch");
-  const competitive = analytics.mostCompetitive(data, 1)[0];
-  const leastCompetitive = analytics.leastCompetitive(data, 1)[0];
-  const diversity = analytics.sortEntries(analytics.branchDiversityByIIT(data), 1)[0];
-  const coverage = analytics.sortEntries(analytics.branchCoverageAcrossIITs(data), 1)[0];
-  const yearlyShift = analytics.largestYearlySeatShift(data);
-  const popularity = analytics.branchPopularityTrend(data)[0];
-  const outlier = analytics.outliers(data)[0];
-  const branchFocus = branchFilter && branchFilter.value !== "all" ? branchFilter.value : "Computer Science and Engineering";
-  const competitiveness = analytics.competitivenessByBranchAcrossIITs(baseData, branchFocus)[0];
+  const shortName = (name) => name ? name.replace("Indian Institute of Technology ", "IIT ") : "-";
 
   answerGrid.innerHTML = `
     <div class="answer-card">
-      <h4>1. Which branches are getting more popular over the years?</h4>
-      <p><strong>${popularity ? popularity.branch : "-"}</strong>${popularity ? ` shows stronger competitiveness with average closing rank moving from ${popularity.firstAvg} to ${popularity.lastAvg}.` : " No data available."}</p>
+      <h4>1. Should we wait for later rounds or lock our choice in Round 1?</h4>
+      <p>${roundAdv ? `<strong>${roundAdv.improvement > 0 ? "Yes, waiting helps." : "Cutoffs barely change."}</strong> On average, closing ranks shift by <strong>${Math.abs(roundAdv.improvement)}</strong> positions from Round ${roundAdv.firstRound} (avg: ${roundAdv.avgR1}) to Round ${roundAdv.lastRound} (avg: ${roundAdv.avgLast}). ${roundAdv.improvement > 0 ? "Later rounds tend to relax, giving you more options." : "Locking early is equally safe."}` : "Not enough multi-round data to compare."}</p>
     </div>
     <div class="answer-card">
-      <h4>2. Which IIT has the highest total seat intake in the current view?</h4>
-      <p><strong>${topIIT ? topIIT[0] : "-"}</strong>${topIIT ? ` leads with ${topIIT[1]} seats.` : " No data available."}</p>
+      <h4>2. Which branches are becoming harder to get into? (Rising in demand)</h4>
+      <p>${risingTop ? `<strong>${risingTop.branch}</strong> has seen the sharpest increase in competition -- average closing rank dropped from <strong>${risingTop.firstAvg}</strong> (${risingTop.firstYear}) to <strong>${risingTop.lastAvg}</strong> (${risingTop.lastYear}). A lower closing rank means tougher competition.` : "Not enough historical data."}</p>
     </div>
     <div class="answer-card">
-      <h4>3. Which branch has the highest total seat intake?</h4>
-      <p><strong>${topBranch ? topBranch[0] : "-"}</strong>${topBranch ? ` leads with ${topBranch[1]} seats.` : " No data available."}</p>
+      <h4>3. Which branches are losing popularity? (Getting easier to get)</h4>
+      <p>${fallingTop ? `<strong>${fallingTop.branch}</strong> has become significantly easier -- closing rank rose from <strong>${fallingTop.firstAvg}</strong> to <strong>${fallingTop.lastAvg}</strong>. This means fewer top-rankers are choosing this branch now.` : "Not enough data."}</p>
     </div>
     <div class="answer-card">
-      <h4>4. How does seat intake for a selected IIT change over time?</h4>
-      <p>The year-wise trend chart and sortable table display this directly for <strong>${iitFilter && iitFilter.value !== "all" ? iitFilter.value : "all visible IITs"}</strong>.</p>
+      <h4>4. Old IITs vs New IITs -- how big is the gap really?</h4>
+      <p>${oldNew ? `The average closing rank at <strong>Old IITs</strong> (Bombay, Delhi, Madras, etc.) is <strong>${oldNew.avgOld}</strong>, while at <strong>Newer IITs</strong> it is <strong>${oldNew.avgNew}</strong>. That is a gap of <strong>${oldNew.gap}</strong> ranks. ${oldNew.gap > 3000 ? "The old IIT premium is still very significant." : "Newer IITs are rapidly closing the gap."}` : "Not enough data to compare."}</p>
     </div>
     <div class="answer-card">
-      <h4>5. How does seat intake for a selected branch change over time?</h4>
-      <p>The year-wise trend chart and leaderboard reveal this for <strong>${branchFilter && branchFilter.value !== "all" ? branchFilter.value : "all visible branches"}</strong>.</p>
+      <h4>5. CSE at a new IIT vs Core branch at a top IIT -- what is the trade-off?</h4>
+      <p>${cseCore.easiestCSE && cseCore.toughestCore ? `The easiest CSE seat available is at <strong>${shortName(cseCore.easiestCSE.iit)}</strong> (closing rank: ${cseCore.easiestCSE.closingRank}), while getting <strong>${cseCore.toughestCore.branch}</strong> at <strong>${shortName(cseCore.toughestCore.iit)}</strong> requires rank ${cseCore.toughestCore.closingRank}. ${cseCore.easiestCSE.closingRank > cseCore.toughestCore.closingRank ? "A core branch at a top IIT requires a significantly better rank." : "CSE, even at new IITs, is harder to get than core branches at top IITs."}` : "Not enough data in the current view."}</p>
     </div>
     <div class="answer-card">
-      <h4>6. Which IIT-branch combination has the lowest closing rank?</h4>
-      <p><strong>${competitive ? `${competitive.iit} • ${competitive.branch}` : "-"}</strong>${competitive ? ` closes at rank ${competitive.closingRank}.` : " No data available."}</p>
+      <h4>6. How reliable are last year's cutoffs? Can we trust them for planning?</h4>
+      <p>${stability ? `Out of all tracked IIT-branch combinations, <strong>${stability.stablePercent}%</strong> have remained stable (less than 15% variation across years). ${stability.stablePercent > 70 ? "Yes, historical cutoffs are a fairly reliable predictor." : "Cutoffs can be unpredictable -- plan with a margin of safety."}${stability.topVolatile.length ? ` Most volatile: <strong>${shortName(stability.topVolatile[0].iit)}</strong> (${stability.topVolatile[0].branch}) with ${stability.topVolatile[0].deviation}% variation.` : ""}` : "Not enough multi-year data."}</p>
     </div>
     <div class="answer-card">
-      <h4>7. Which IIT-branch combination has the highest closing rank?</h4>
-      <p><strong>${leastCompetitive ? `${leastCompetitive.iit} • ${leastCompetitive.branch}` : "-"}</strong>${leastCompetitive ? ` closes at rank ${leastCompetitive.closingRank}.` : " No data available."}</p>
+      <h4>7. Which newer IITs are improving the fastest in reputation?</h4>
+      <p>${topRisingIIT ? `<strong>${shortName(topRisingIIT.iit)}</strong> has had the sharpest rise -- average closing rank tightened from <strong>${topRisingIIT.firstAvg}</strong> (${topRisingIIT.firstYear}) to <strong>${topRisingIIT.lastAvg}</strong> (${topRisingIIT.lastYear}). Tighter cutoffs indicate growing demand and prestige.` : "Not enough historical data."}</p>
     </div>
     <div class="answer-card">
-      <h4>8. How do opening and closing ranks differ for the same branch across IITs?</h4>
-      <p>Use the table, sort by rank gap, and filter to a specific branch to compare cross-IIT movement clearly.</p>
+      <h4>8. How many options does my child have at different rank levels?</h4>
+      <p>${brackets.map(b => `<strong>${b.label}:</strong> ${b.count} programs available${b.sample.length ? ` (e.g., ${shortName(b.sample[0].iit)} - ${b.sample[0].branch})` : ""}`).join(" | ")}</p>
     </div>
     <div class="answer-card">
-      <h4>9. Which year shows the biggest visible change in total seat intake?</h4>
-      <p><strong>${yearlyShift ? `${yearlyShift.from} → ${yearlyShift.to}` : "-"}</strong>${yearlyShift ? ` shows the biggest shift with ${yearlyShift.delta > 0 ? "+" : ""}${yearlyShift.delta} seats.` : " No data available."}</p>
+      <h4>9. What are the top 5 most sought-after programs in India?</h4>
+      <p>${top5.length ? top5.map((p, i) => `<strong>${i+1}.</strong> ${shortName(p.iit)} - ${p.branch} (Rank ${p.closingRank})`).join("<br>") : "No data available."}</p>
     </div>
     <div class="answer-card">
-      <h4>10. Which emerging branches appear to be growing?</h4>
-      <p><strong>Artificial Intelligence, Data Science and Artificial Intelligence, and Mathematics and Computing</strong> can be tracked directly through filters and the trend view.</p>
-    </div>
-    <div class="answer-card">
-      <h4>11. Which IIT offers the widest variety of visible branches?</h4>
-      <p><strong>${diversity ? diversity[0] : "-"}</strong>${diversity ? ` appears with ${diversity[1]} distinct branches.` : " No data available."}</p>
-    </div>
-    <div class="answer-card">
-      <h4>12. Which branch appears in the maximum number of IITs?</h4>
-      <p><strong>${coverage ? coverage[0] : "-"}</strong>${coverage ? ` appears across ${coverage[1]} IITs.` : " No data available."}</p>
-    </div>
-    <div class="answer-card">
-      <h4>13. Which IIT has become more competitive over time for a selected branch?</h4>
-      <p><strong>${competitiveness ? competitiveness.iit : "-"}</strong>${competitiveness ? ` shows the strongest improvement for ${branchFocus}, with closing rank moving from ${competitiveness.start} to ${competitiveness.end}.` : " No data available."}</p>
-    </div>
-    <div class="answer-card">
-      <h4>14. What is the average closing rank for the selected view?</h4>
-      <p><strong>${analytics.averageClosingRank(data) ?? "-"}</strong> is the current average closing rank.</p>
-    </div>
-    <div class="answer-card">
-      <h4>15. Which records stand out as unusual or outliers?</h4>
-      <p><strong>${outlier ? `${outlier.iit} • ${outlier.branch}` : "-"}</strong>${outlier ? ` stands out with ${outlier.seats} seats, rank gap ${outlier.rankGap}, and closing rank ${outlier.closingRank}.` : " No data available."}</p>
+      <h4>10. Which branches are offered at the most IITs nationwide?</h4>
+      <p>${coverageTop ? `<strong>${coverageTop[0]}</strong> is the most universally available branch, offered at <strong>${coverageTop[1]}</strong> different IITs. This makes it one of the safest choices since more seats exist across the system.` : "No data."}</p>
     </div>
   `;
 }
 
 function buildBarChart(container, obj, limit = 6) {
   if (!container) return;
-
   container.innerHTML = "";
-
   const entries = analytics.sortEntries(obj, limit);
-
   if (!entries.length) {
     container.innerHTML = `<p style="color:#5f5a55;">No data available for current filters.</p>`;
     return;
   }
-
   const maxValue = Math.max(...entries.map(entry => entry[1]));
-
   entries.forEach(([label, value]) => {
     const row = document.createElement("div");
     row.className = "bar-row";
+    const shortLabel = label.replace("Indian Institute of Technology ", "IIT ");
     row.innerHTML = `
-      <div class="bar-label">${label}</div>
+      <div class="bar-label">${shortLabel}</div>
       <div class="bar-track">
         <div class="bar-fill" style="width:${(value / maxValue) * 100}%"></div>
       </div>
@@ -325,17 +305,13 @@ function buildBarChart(container, obj, limit = 6) {
 
 function renderYearTrend(data) {
   if (!yearTrendChart) return;
-
   yearTrendChart.innerHTML = "";
-
-  const trend = analytics.yearSeatTrend(data);
+  const trend = analytics.competitivenessTrendByYear(data);
   if (!trend.length) {
     yearTrendChart.innerHTML = `<p style="color:#5f5a55;">No data available for current filters.</p>`;
     return;
   }
-
   const maxValue = Math.max(...trend.map(entry => entry[1]));
-
   trend.forEach(([year, value]) => {
     const item = document.createElement("div");
     item.className = "line-bar-item";
@@ -352,108 +328,72 @@ function renderYearTrend(data) {
 
 function renderLeaderboard(container, rows, type = "simple") {
   if (!container) return;
-
   container.innerHTML = "";
-
   if (!rows.length) {
     container.innerHTML = `<p style="color:#5f5a55;">No data available for current filters.</p>`;
     return;
   }
-
   rows.forEach((row, index) => {
     const item = document.createElement("div");
     item.className = "leaderboard-item";
-
     if (type === "record") {
       item.innerHTML = `
         <div class="leaderboard-rank">${index + 1}</div>
-        <div class="leaderboard-name">${row.iit} • ${row.branch}</div>
-        <div class="leaderboard-score">${row.closingRank}</div>
+        <div class="leaderboard-name">${row.iit.replace("Indian Institute of Technology ", "IIT ")} - ${row.branch}</div>
+        <div class="leaderboard-score">Rank ${row.closingRank}</div>
       `;
     } else if (type === "outlier") {
       item.innerHTML = `
         <div class="leaderboard-rank">${index + 1}</div>
-        <div class="leaderboard-name">${row.iit} • ${row.branch}</div>
-        <div class="leaderboard-score">${row.rankGap}</div>
+        <div class="leaderboard-name">${row.iit.replace("Indian Institute of Technology ", "IIT ")} - ${row.branch}</div>
+        <div class="leaderboard-score">Gap: ${row.rankGap}</div>
       `;
     } else {
+      const shortLabel = typeof row[0] === "string" ? row[0].replace("Indian Institute of Technology ", "IIT ") : row[0];
       item.innerHTML = `
         <div class="leaderboard-rank">${index + 1}</div>
-        <div class="leaderboard-name">${row[0]}</div>
+        <div class="leaderboard-name">${shortLabel}</div>
         <div class="leaderboard-score">${row[1]}</div>
       `;
     }
-
     container.appendChild(item);
   });
 }
 
 function openDetailsModal(item) {
   if (!modalTitle || !modalGrid || !modalOverlay) return;
-
-  modalTitle.textContent = `${item.iit} • ${item.branch}`;
+  const shortIIT = item.iit.replace("Indian Institute of Technology ", "IIT ");
+  modalTitle.textContent = `${shortIIT} - ${item.branch}`;
   modalGrid.innerHTML = `
-    <div class="modal-item">
-      <h4>Year</h4>
-      <p>${item.year}</p>
-    </div>
-    <div class="modal-item">
-      <h4>IIT</h4>
-      <p>${item.iit}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Branch</h4>
-      <p>${item.branch}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Seat Intake</h4>
-      <p>${item.seats}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Opening Rank</h4>
-      <p>${item.openingRank}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Closing Rank</h4>
-      <p>${item.closingRank}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Rank Gap</h4>
-      <p>${item.rankGap}</p>
-    </div>
-    <div class="modal-item">
-      <h4>Competitiveness View</h4>
-      <p>${item.closingRank < 200 ? "Highly competitive" : item.closingRank < 700 ? "Strong demand" : "Moderate demand"}</p>
-    </div>
+    <div class="modal-item"><h4>Year</h4><p>${item.year}</p></div>
+    <div class="modal-item"><h4>Round</h4><p>${item.round}</p></div>
+    <div class="modal-item"><h4>IIT</h4><p>${shortIIT}</p></div>
+    <div class="modal-item"><h4>Branch</h4><p>${item.branch}</p></div>
+    <div class="modal-item"><h4>Opening Rank</h4><p>${item.openingRank}</p></div>
+    <div class="modal-item"><h4>Closing Rank</h4><p>${item.closingRank}</p></div>
+    <div class="modal-item"><h4>Rank Gap</h4><p>${item.rankGap}</p></div>
+    <div class="modal-item"><h4>Verdict</h4><p>${item.closingRank < 500 ? "Elite tier - extremely competitive" : item.closingRank < 2000 ? "Premium tier - strong demand" : item.closingRank < 8000 ? "Competitive - good option" : "Accessible - safe backup choice"}</p></div>
   `;
   modalOverlay.classList.add("active");
 }
 
 function renderTable(data) {
   if (!dataTableBody) return;
-
   dataTableBody.innerHTML = "";
-
   if (!data.length) {
-    dataTableBody.innerHTML = `
-      <tr>
-        <td colspan="7" style="text-align:center;">No matching data found.</td>
-      </tr>
-    `;
+    dataTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No matching data found.</td></tr>`;
     return;
   }
-
   const field = sortField ? sortField.value : "year";
   const order = sortOrder ? sortOrder.value : "asc";
   const sorted = analytics.sortData(data, field, order);
-
   sorted.forEach(item => {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${item.year}</td>
-      <td>${item.iit}</td>
+      <td>${item.iit.replace("Indian Institute of Technology ", "IIT ")}</td>
       <td>${item.branch}</td>
-      <td>${item.seats}</td>
+      <td>${item.round}</td>
       <td>${item.openingRank}</td>
       <td>${item.closingRank}</td>
       <td>${item.rankGap}</td>
@@ -465,15 +405,17 @@ function renderTable(data) {
 
 function updateExploreSection() {
   const filtered = getFilteredData();
-
   renderStats(filtered);
   renderInsights(filtered);
   renderAnswerGrid(filtered);
 
-  buildBarChart(iitChart, analytics.aggregateSum(filtered, "iit", "seats"));
-  buildBarChart(branchChart, analytics.aggregateSum(filtered, "branch", "seats"));
+  buildBarChart(iitChart, analytics.programsOfferedByIIT(filtered));
+  buildBarChart(branchChart, analytics.averageClosingRankByBranch(filtered), 6);
   renderYearTrend(filtered);
-  renderLeaderboard(branchLeaderboard, analytics.sortEntries(analytics.aggregateSum(filtered, "branch", "seats"), 5));
+
+  const accessibleBranches = analytics.sortEntries(analytics.averageClosingRankByBranch(filtered), 5, true);
+  renderLeaderboard(branchLeaderboard, accessibleBranches);
+  
   buildBarChart(diversityChart, analytics.branchDiversityByIIT(filtered));
   buildBarChart(coverageChart, analytics.branchCoverageAcrossIITs(filtered));
   renderLeaderboard(competitiveLeaderboard, analytics.mostCompetitive(filtered, 5), "record");
@@ -489,7 +431,33 @@ if (searchInput) {
   searchInput.addEventListener("input", updateExploreSection);
 }
 
-if (window.analytics && window.josaaData) {
-  populateFilters();
-  updateExploreSection();
-}
+let baseData = [];
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const loadingOverlay = document.getElementById("db-loading-overlay");
+    if (loadingOverlay) loadingOverlay.style.display = "block";
+
+    try {
+        const response = await fetch('http://localhost/JOSAA-Analysis-Portal/api.php');
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+        
+        baseData = await response.json();
+        
+        if (window.analytics && baseData.length > 0) {
+            baseData = analytics.enrichData(baseData);
+            populateFilters();
+            updateExploreSection();
+        }
+    } catch (e) {
+        console.error("Failed to load JOSAA data from backend API:", e);
+        if (loadingOverlay) {
+            loadingOverlay.innerHTML = `<h3 style="color:red;">Database Connection Failed</h3><p>${e.message}</p>`;
+        }
+    } finally {
+        if (loadingOverlay && baseData.length > 0) {
+            loadingOverlay.style.display = "none";
+        }
+    }
+});
