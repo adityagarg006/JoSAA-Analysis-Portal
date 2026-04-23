@@ -10,10 +10,10 @@ def create_db():
     try:
         conn = pymysql.connect(host='localhost', user='root', password='')
         cursor = conn.cursor()
-        cursor.execute('CREATE DATABASE IF NOT EXISTS Jossa')
+        cursor.execute('CREATE DATABASE IF NOT EXISTS JoSAA')
         conn.commit()
         conn.close()
-        print("Database 'Jossa' created/verified.")
+        print("Database 'JoSAA' created/verified.")
     except Exception as e:
         print(f"Failed to connect to MySQL or create database: {e}")
         exit(1)
@@ -75,13 +75,13 @@ def process_and_upload():
 
     total_rows = len(final_df)
     print(f"\nFinal Combined Rows: {total_rows}")
-    print("Connecting to DB 'Jossa' and pushing payload...")
+    print("Connecting to DB 'JoSAA' and pushing payload...")
     
     try:
-        engine = create_engine('mysql+pymysql://root:@localhost/Jossa')
+        engine = create_engine('mysql+pymysql://root:@localhost/josaa')
         # Writes directly via SQLAlchemy schema generation
         final_df.to_sql('josaa_data', con=engine, if_exists='replace', index=True, index_label='id')
-        print(f"Successfully inserted {total_rows} records into Jossa.josaa_data!")
+        print(f"Successfully inserted {total_rows} records into JoSAA.josaa_data!")
     except Exception as e:
         print(f"Failed to push data to database: {e}")
 
